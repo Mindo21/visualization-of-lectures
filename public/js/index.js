@@ -87,11 +87,22 @@ if (!('webkitSpeechRecognition' in window)) {
           console.log('hello: ', images);
           if (images) {
             for (let i = 0; i < images.length; i++) {
+              // create img element
               const img = document.createElement("img");
-              img.classList.add("img-result", "img-result-2");
-              img.src = images[i];
-              const imgDiv = document.querySelector(".img-result-div");
+              img.classList.add("img-result");
+              img.src = images[i].src;
+              // create img caption
+              const imgCaption = document.createElement("div");
+              imgCaption.classList.add("img-caption");
+              imgCaption.innerHTML = images[i].caption;
+              // create div element and put img & caption in div
+              const imgDiv = document.createElement("div");
+              imgDiv.classList.add("img-result-div");
               imgDiv.appendChild(img);
+              imgDiv.appendChild(imgCaption);
+              // get the container and append to it
+              const imgSection = document.querySelector(".img-result-section");
+              imgSection.appendChild(imgDiv);
             }
           }
         });
@@ -170,8 +181,14 @@ function postToAPI(text) {
                   const response = await fetch(`https://www.googleapis.com/customsearch/v1?key=${res.apiKey}&cx=${res.cx}&q=${res.imageWords[i]}&num=2&searchType=image`)
                   const results = await response.json();
                   console.log("returned from search: ", results);
-                  img1 = results.items[0].link;
-                  img2 = results.items[1].link;
+                  img1 = {
+                    src: results.items[0].link,
+                    caption: res.imageWords[i]
+                  };
+                  img2 = {
+                    src: results.items[1].link,
+                    caption: res.imageWords[i]
+                  };
                   images.push(img1, img2);
                 }
                 resolve(images);
