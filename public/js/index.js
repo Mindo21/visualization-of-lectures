@@ -86,8 +86,13 @@ if (!('webkitSpeechRecognition' in window)) {
         postToAPI(final_transcript).then(images => {
           console.log('hello: ', images);
           if (images) {
-            document.querySelector(".img-result-1").src = images[0];
-            document.querySelector(".img-result-2").src = images[1];
+            for (let i = 0; i < images.length; i++) {
+              const img = document.createElement("img");
+              img.classList.add("img-result", "img-result-2");
+              img.src = images[i];
+              const imgDiv = document.querySelector(".img-result-div");
+              imgDiv.appendChild(img);
+            }
           }
         });
       } else {
@@ -155,18 +160,24 @@ function postToAPI(text) {
     return new Promise((resolve, reject) => {
       fetch('/api', requestOptions)
         .then(res => res.json())
-        .then((res) => {
+        .then(async (res) => {
+              const promises = [];
               console.log("res: ", res);
-              console.log(`url to search: https://www.googleapis.com/customsearch/v1?key=${res.apiKey}&cx=${res.cx}&q=${res.imageWords[0]}&searchType=image`);
-              fetch(`https://www.googleapis.com/customsearch/v1?key=${res.apiKey}&cx=${res.cx}&q=${res.imageWords[0]}&num=2&searchType=image`)
-              // fetch(`https://www.googleapis.com/customsearch/v1?key=${res.apiKey}&cx=${res.cx}&q=valorant+sova&num=2&searchType=image`)
-                .then(response => response.json())
-                .then(results => {
+              if (res.imageWords) {
+                const images = [];
+                for (let i = 0; i < res.imageWords.length; i++) {
+                  console.log(`url to search: https://www.googleapis.com/customsearch/v1?key=${res.apiKey}&cx=${res.cx}&q=${res.imageWords[i]}&searchType=image`);
+                  const response = await fetch(`https://www.googleapis.com/customsearch/v1?key=${res.apiKey}&cx=${res.cx}&q=${res.imageWords[i]}&num=2&searchType=image`)
+                  const results = await response.json();
                   console.log("returned from search: ", results);
                   img1 = results.items[0].link;
                   img2 = results.items[1].link;
-                  resolve([img1, img2]);
-                });
+                  images.push(img1, img2);
+                }
+                resolve(images);
+              } else {
+                reject();
+              }
           },
           (error) => {
               console.log(error);
